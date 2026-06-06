@@ -1,0 +1,1 @@
+from fastapi import FastAPI import os app = FastAPI(title="ProdSentinel") @app.get("/") def root(): return { "name": "ProdSentinel", "status": "running", "description": "AI Production Failure Oracle" } @app.get("/health") def health(): return {"status": "ok"}
