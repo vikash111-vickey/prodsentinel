@@ -1,0 +1,26 @@
+INCIDENT REPORT — November 3, 2023
+Service: Payment Service
+Duration: 2.5 hours
+Severity: P1
+Affected: Checkout flow for 12% of users
+
+WHAT HAPPENED:
+A change to the retry logic in payment_processor.py introduced
+an infinite retry loop when the payment gateway returned a 429.
+The backoff multiplier was accidentally set to 0, causing
+immediate retries with no delay.
+
+ROOT CAUSE:
+retry_backoff_multiplier = 0 instead of 1.5 in config.
+No upper bound on retry count.
+
+BLAST RADIUS:
+Checkout endpoint, order confirmation emails (backlog of 40k),
+payment gateway rate limit triggered for entire account.
+
+RESOLUTION:
+Hotfix to set multiplier to 1.5 and max_retries to 5.
+
+LESSONS LEARNED:
+Payment retry config must have automated bounds validation.
+Any change to retry/backoff logic requires load test before deploy.
