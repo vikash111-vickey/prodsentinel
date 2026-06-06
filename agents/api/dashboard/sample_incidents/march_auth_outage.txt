@@ -1,1 +1,26 @@
+INCIDENT REPORT — March 14, 2024
+Service: Authentication Service
+Duration: 4 hours
+Severity: P0
+Affected: All EU users (approx. 180,000 sessions)
 
+WHAT HAPPENED:
+A config change reduced TOKEN_EXPIRY from 3600 to 900 seconds.
+This triggered a race condition in the session invalidation logic
+where cache.delete() was called before the new token was issued,
+causing users to be logged out mid-session with no refresh path.
+
+ROOT CAUSE:
+Session invalidation logic assumed token lifetime > 1800s.
+The config change violated this undocumented assumption.
+
+BLAST RADIUS:
+All authenticated API endpoints. Payment flows, dashboard,
+and API integrations all affected.
+
+RESOLUTION:
+Reverted TOKEN_EXPIRY to 3600. Added validation guard.
+
+LESSONS LEARNED:
+Any change to session/token config must go through canary deploy.
+Config changes to auth service require feature flag wrapping.
